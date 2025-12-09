@@ -1,0 +1,545 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<!-- Stats Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="stat-card animate__animated animate__fadeInUp">
+            <div class="stat-label mb-2">
+                <i class="fas fa-users me-2"></i>Total Squads
+            </div>
+            <div class="stat-number" id="stat-total">0</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+            <div class="stat-label mb-2">
+                <i class="fas fa-user-friends me-2"></i>Usuarios Activos
+            </div>
+            <div class="stat-number" id="stat-users" style="background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">0</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <div class="stat-label mb-2">
+                <i class="fas fa-fire me-2"></i>Creados Hoy
+            </div>
+            <div class="stat-number" id="stat-hoy" style="background: linear-gradient(135deg, var(--accent-warning) 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">0</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row g-4">
+    <!-- Crear Squad -->
+    <div class="col-lg-4">
+        <div class="card-custom p-4 sticky-top animate__animated animate__fadeInLeft" style="top: 90px;">
+            <div class="mb-4">
+                <h4 class="fw-bold mb-2">
+                    <i class="fas fa-plus-circle me-2" style="color: var(--accent-primary);"></i>
+                    Publicar Squad
+                </h4>
+                <p class="text-secondary small mb-0">Crea un nuevo aviso de búsqueda</p>
+            </div>
+            
+            <form onsubmit="event.preventDefault(); crear();" id="formCrear">
+                <div class="mb-3">
+                    <label class="form-label-custom">
+                        <i class="fas fa-gamepad me-2"></i>Juego
+                    </label>
+                    <select id="select-juego" class="form-control form-control-custom" required>
+                        <option value="">Cargando juegos...</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label-custom">
+                        <i class="fas fa-medal me-2"></i>Rango
+                    </label>
+                    <input 
+                        type="text" 
+                        id="rango" 
+                        class="form-control form-control-custom" 
+                        placeholder="Ej: Platino 1"
+                        required
+                    >
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label-custom">
+                        <i class="fas fa-comment-alt me-2"></i>Descripción
+                    </label>
+                    <textarea 
+                        id="desc" 
+                        class="form-control form-control-custom" 
+                        rows="4" 
+                        placeholder="Describe tu búsqueda (mínimo 10 caracteres)..."
+                        required
+                        minlength="10"
+                    ></textarea>
+                    <div class="mt-1">
+                        <small class="text-secondary">
+                            <span id="charCount">0</span>/200 caracteres
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="form-check form-switch" style="padding-left: 3rem;">
+                        <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            id="mic" 
+                            checked
+                            style="width: 50px; height: 25px; cursor: pointer;"
+                        >
+                        <label class="form-check-label text-white ms-2" for="mic" style="cursor: pointer;">
+                            <i class="fas fa-microphone me-2"></i>Requiere Micrófono
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-custom-primary w-100 py-3">
+                    <i class="fas fa-rocket me-2"></i>PUBLICAR AHORA
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Squads -->
+    <div class="col-lg-8">
+        <div class="animate__animated animate__fadeInRight">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1">
+                        <i class="fas fa-fire me-2" style="color: var(--accent-warning);"></i>
+                        Muro de Búsqueda
+                    </h3>
+                    <p class="text-secondary small mb-0">Encuentra tu squad perfecto</p>
+                </div>
+                <button class="btn btn-outline-custom" onclick="cargarSquads()">
+                    <i class="fas fa-sync-alt me-2"></i>Actualizar
+                </button>
+            </div>
+
+            <!-- Filtros -->
+            <div class="card-custom p-3 mb-4">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-0 text-secondary">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input 
+                                type="text" 
+                                id="searchInput" 
+                                class="form-control form-control-custom border-0" 
+                                placeholder="Buscar por juego, rango o descripción..."
+                                onkeyup="filtrarSquads()"
+                            >
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <select id="filterJuego" class="form-control form-control-custom" onchange="filtrarSquads()">
+                            <option value="">Todos los juegos</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loading" class="text-center py-5">
+                <i class="fas fa-spinner fa-spin fa-3x text-secondary mb-3"></i>
+                <p class="text-secondary">Cargando squads...</p>
+            </div>
+
+            <!-- Squad List -->
+            <div id="lista-squads" class="d-none">
+                <!-- Squads will be loaded here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center py-5 d-none">
+                <i class="fas fa-inbox fa-4x text-secondary mb-3"></i>
+                <h5 class="text-white mb-2">No hay squads disponibles</h5>
+                <p class="text-secondary">¡Sé el primero en publicar un squad!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('access_token');
+    const miUsuario = localStorage.getItem('usuario_actual');
+    let todosLosSquads = [];
+    let todosLosJuegos = [];
+    
+    if (!token) {
+        window.location.href = '/';
+    }
+
+    // Character counter
+    document.getElementById('desc').addEventListener('input', function(e) {
+        const count = e.target.value.length;
+        document.getElementById('charCount').textContent = count;
+        
+        if (count < 10) {
+            document.getElementById('charCount').style.color = 'var(--accent-danger)';
+        } else {
+            document.getElementById('charCount').style.color = 'var(--accent-success)';
+        }
+    });
+
+    cargarTodo();
+
+    async function cargarTodo() {
+        try {
+            // 1. Cargar Juegos
+            const rJuegos = await fetch('/api/juegos/');
+            todosLosJuegos = await rJuegos.json();
+            
+            const select = document.getElementById('select-juego');
+            const filterSelect = document.getElementById('filterJuego');
+            
+            if (todosLosJuegos.length) {
+                select.innerHTML = todosLosJuegos.map(j => 
+                    `<option value="${j.id}">${j.nombre}</option>`
+                ).join('');
+                
+                filterSelect.innerHTML = '<option value="">Todos los juegos</option>' + 
+                    todosLosJuegos.map(j => `<option value="${j.nombre}">${j.nombre}</option>`).join('');
+            } else {
+                select.innerHTML = '<option value="">Sin juegos disponibles</option>';
+            }
+
+            // 2. Cargar Stats - CON VALIDACIÓN PARA EVITAR NEGATIVOS
+            const rStats = await fetch('/api/stats/');
+            const dStats = await rStats.json();
+            
+            // Asegurarse de que los valores no sean negativos o undefined
+            const totalSquads = Math.max(0, dStats.squads_total || 0);
+            const totalUsuarios = Math.max(0, dStats.usuarios || 0);
+            const squadsHoy = Math.max(0, dStats.squads_hoy || 0);
+            
+            animateValue('stat-total', 0, totalSquads, 1000);
+            animateValue('stat-users', 0, totalUsuarios, 1000);
+            animateValue('stat-hoy', 0, squadsHoy, 1000);
+
+            // 3. Cargar Squads
+            await cargarSquads();
+        } catch(e) {
+            console.error("Error cargando datos:", e);
+            mostrarToast('Error al cargar los datos', 'danger');
+        }
+    }
+
+    async function cargarSquads() {
+        document.getElementById('loading').classList.remove('d-none');
+        document.getElementById('lista-squads').classList.add('d-none');
+        document.getElementById('empty-state').classList.add('d-none');
+
+        try {
+            const res = await fetch('/api/squads/', { 
+                headers: {'Authorization': `Bearer ${token}`} 
+            });
+            
+            todosLosSquads = await res.json();
+            
+            document.getElementById('loading').classList.add('d-none');
+            
+            if (todosLosSquads.length === 0) {
+                document.getElementById('empty-state').classList.remove('d-none');
+            } else {
+                document.getElementById('lista-squads').classList.remove('d-none');
+                filtrarSquads();
+            }
+        } catch(e) {
+            console.error("Error cargando squads:", e);
+            document.getElementById('loading').classList.add('d-none');
+            mostrarToast('Error al cargar los squads', 'danger');
+        }
+    }
+
+    function filtrarSquads() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const juegoFilter = document.getElementById('filterJuego').value;
+        
+        const squadsFiltrados = todosLosSquads.filter(s => {
+            const matchSearch = !searchTerm || 
+                s.nombre_juego.toLowerCase().includes(searchTerm) ||
+                s.rango_requerido.toLowerCase().includes(searchTerm) ||
+                s.descripcion.toLowerCase().includes(searchTerm) ||
+                s.gamertag_creador.toLowerCase().includes(searchTerm);
+            
+            const matchJuego = !juegoFilter || s.nombre_juego === juegoFilter;
+            
+            return matchSearch && matchJuego;
+        });
+        
+        renderSquads(squadsFiltrados);
+    }
+
+    function renderSquads(squads) {
+        const lista = document.getElementById('lista-squads');
+        
+        if (squads.length === 0) {
+            lista.innerHTML = `
+                <div class="card-custom p-5 text-center">
+                    <i class="fas fa-search fa-3x text-secondary mb-3"></i>
+                    <h5 class="text-white mb-2">No se encontraron resultados</h5>
+                    <p class="text-secondary">Intenta con otros términos de búsqueda</p>
+                </div>
+            `;
+            return;
+        }
+
+        lista.innerHTML = squads.map((s, index) => {
+            const esMio = s.username_creador && miUsuario && s.username_creador === miUsuario;
+            const micBadge = s.usa_microfono ? 
+                '<span class="badge badge-custom badge-success-custom"><i class="fas fa-microphone me-1"></i>Mic ON</span>' : 
+                '<span class="badge badge-custom" style="background: rgba(148, 163, 184, 0.2); color: var(--text-secondary);"><i class="fas fa-microphone-slash me-1"></i>Mic OFF</span>';
+            
+            const fecha = new Date(s.fecha_creacion);
+            const fechaFormateada = fecha.toLocaleDateString('es-ES', { 
+                day: 'numeric', 
+                month: 'short', 
+                year: 'numeric' 
+            });
+            
+            return `
+            <div class="card-custom p-4 mb-3 animate__animated animate__fadeIn" style="animation-delay: ${index * 0.05}s;">
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h5 class="mb-1 fw-bold" style="color: var(--accent-primary);">
+                                    <i class="fas fa-gamepad me-2"></i>${s.nombre_juego}
+                                </h5>
+                                <span class="badge badge-custom badge-info-custom">${s.rango_requerido}</span>
+                            </div>
+                            <small class="text-secondary">
+                                <i class="far fa-clock me-1"></i>${fechaFormateada}
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="mb-2" style="color: var(--accent-warning);">
+                                <i class="fas fa-user me-2"></i>${s.gamertag_creador}
+                                ${esMio ? '<span class="badge badge-custom" style="background: rgba(99, 102, 241, 0.2); color: var(--accent-primary); font-size: 0.7rem; margin-left: 0.5rem;">TÚ</span>' : ''}
+                            </h6>
+                        </div>
+                        
+                        <div class="p-3 mb-3" style="background: rgba(15, 23, 42, 0.5); border-left: 3px solid var(--accent-primary); border-radius: 10px;">
+                            <p class="mb-0 text-white">${s.descripcion}</p>
+                        </div>
+                        
+                        <div class="d-flex gap-2 align-items-center">
+                            ${micBadge}
+                            ${esMio ? `
+                                <button class="btn btn-custom-danger btn-sm" onclick="borrar(${s.id})">
+                                    <i class="fas fa-trash me-1"></i>Eliminar
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="col-md-3 d-none d-md-flex align-items-center justify-content-center">
+                        <div class="text-center p-3" style="background: rgba(99, 102, 241, 0.05); border-radius: 15px; width: 100%;">
+                            <i class="fas fa-users fa-3x mb-2" style="color: var(--accent-primary);"></i>
+                            <p class="text-secondary small mb-0">Buscando Squad</p>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function crear() {
+        const juegoId = parseInt(document.getElementById('select-juego').value);
+        const rango = document.getElementById('rango').value.trim();
+        const descripcion = document.getElementById('desc').value.trim();
+        const usaMic = document.getElementById('mic').checked;
+
+        if (!juegoId || !rango || descripcion.length < 10) {
+            mostrarToast('Por favor completa todos los campos correctamente', 'danger');
+            return;
+        }
+
+        const btn = document.querySelector('#formCrear button[type="submit"]');
+        const btnText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Publicando...';
+
+        try {
+            const body = {
+                id_juego_seleccionado: juegoId,
+                rango_requerido: rango,
+                descripcion: descripcion,
+                usa_microfono: usaMic
+            };
+
+            const res = await fetch('/api/squads/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (res.ok) {
+                // Limpiar formulario
+                document.getElementById('rango').value = '';
+                document.getElementById('desc').value = '';
+                document.getElementById('charCount').textContent = '0';
+                document.getElementById('mic').checked = true;
+                
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>¡Publicado!';
+                setTimeout(() => {
+                    btn.innerHTML = btnText;
+                    btn.disabled = false;
+                }, 2000);
+                
+                mostrarToast('Squad publicado exitosamente', 'success');
+                await cargarSquads();
+                await cargarTodo();
+            } else {
+                throw new Error('Error al publicar');
+            }
+        } catch(e) {
+            console.error("Error:", e);
+            mostrarToast('Error al publicar el squad', 'danger');
+            btn.disabled = false;
+            btn.innerHTML = btnText;
+        }
+    }
+
+    async function borrar(id) {
+        if (!confirm('¿Estás seguro de que quieres eliminar este squad?')) return;
+
+        try {
+            const res = await fetch(`/api/squads/${id}/`, {
+                method: 'DELETE',
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+
+            if (res.ok) {
+                mostrarToast('Squad eliminado correctamente', 'success');
+                await cargarSquads();
+                await cargarTodo();
+            } else {
+                mostrarToast('No tienes permiso para eliminar este squad', 'danger');
+            }
+        } catch(e) {
+            console.error("Error:", e);
+            mostrarToast('Error al eliminar el squad', 'danger');
+        }
+    }
+
+    function animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id);
+        if (!obj) return;
+        
+        // VALIDACIÓN: Asegurar que end no sea negativo
+        end = Math.max(0, end);
+        
+        // Si el valor es 0, simplemente mostrarlo
+        if (end === 0) {
+            obj.textContent = '0';
+            return;
+        }
+        
+        const range = end - start;
+        if (range === 0) {
+            obj.textContent = end;
+            return;
+        }
+        
+        const increment = end > start ? 1 : -1;
+        const stepTime = Math.abs(Math.floor(duration / range));
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            obj.textContent = current;
+            if (current === end) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    }
+
+    function mostrarToast(mensaje, tipo) {
+        const colores = {
+            'success': 'var(--accent-success)',
+            'danger': 'var(--accent-danger)',
+            'warning': 'var(--accent-warning)'
+        };
+        
+        const iconos = {
+            'success': 'fa-check-circle',
+            'danger': 'fa-exclamation-circle',
+            'warning': 'fa-exclamation-triangle'
+        };
+
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: rgba(26, 31, 58, 0.95);
+            border: 2px solid ${colores[tipo]};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        `;
+        
+        toast.innerHTML = `
+            <i class="fas ${iconos[tipo]} me-2" style="color: ${colores[tipo]};"></i>
+            ${mensaje}
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+</script>
+
+<style>
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    .form-check-input:checked {
+        background-color: var(--accent-primary);
+        border-color: var(--accent-primary);
+    }
+
+    .input-group-text {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+</style>
+{% endblock %}

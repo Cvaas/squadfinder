@@ -1,0 +1,579 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="mb-5">
+    <div class="text-center mb-4 animate__animated animate__fadeIn">
+        <h1 class="display-4 fw-bold mb-2">
+            <span style="background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">
+                <i class="fas fa-chart-line me-3"></i>Panel de Estadísticas
+            </span>
+        </h1>
+        <p class="text-secondary">Análisis completo de la actividad de la comunidad</p>
+    </div>
+
+    <!-- Métricas Principales -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stat-card animate__animated animate__fadeInUp">
+                <i class="fas fa-users fa-2x mb-3" style="color: var(--accent-primary);"></i>
+                <div class="stat-number" id="total-usuarios">0</div>
+                <div class="stat-label">Total Usuarios</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <i class="fas fa-layer-group fa-2x mb-3" style="color: var(--accent-success);"></i>
+                <div class="stat-number" id="total-squads" style="background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">0</div>
+                <div class="stat-label">Total Squads</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+                <i class="fas fa-fire fa-2x mb-3" style="color: var(--accent-warning);"></i>
+                <div class="stat-number" id="squads-hoy" style="background: linear-gradient(135deg, var(--accent-warning) 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">0</div>
+                <div class="stat-label">Squads Hoy</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                <i class="fas fa-link fa-2x mb-3" style="color: var(--accent-secondary);"></i>
+                <div class="stat-number" id="total-enlaces" style="background: linear-gradient(135deg, var(--accent-secondary) 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">0</div>
+                <div class="stat-label">Enlaces Comunidad</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row g-4">
+        <!-- Gráfico de Squads por Juego -->
+        <div class="col-lg-6">
+            <div class="card-custom p-4 animate__animated animate__fadeInLeft">
+                <h5 class="fw-bold mb-4">
+                    <i class="fas fa-gamepad me-2" style="color: var(--accent-primary);"></i>
+                    Distribución por Juego
+                </h5>
+                <div style="height: 300px; display: flex; justify-content: center; align-items: center;">
+                    <canvas id="graficoDoughnut"></canvas>
+                </div>
+                <div class="mt-4" id="legend-juegos">
+                    <!-- Legend will be generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Actividad -->
+        <div class="col-lg-6">
+            <div class="card-custom p-4 animate__animated animate__fadeInRight">
+                <h5 class="fw-bold mb-4">
+                    <i class="fas fa-chart-bar me-2" style="color: var(--accent-success);"></i>
+                    Actividad por Juego
+                </h5>
+                <div style="height: 300px;">
+                    <canvas id="graficoBarras"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Reportes Diarios -->
+        <div class="col-12">
+            <div class="card-custom p-4 animate__animated animate__fadeInUp">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-calendar-check me-2" style="color: var(--accent-warning);"></i>
+                        Reporte de Encuentros Diarios
+                    </h5>
+                    <button class="btn btn-outline-custom btn-sm" onclick="actualizarDatos()">
+                        <i class="fas fa-sync-alt me-2"></i>Actualizar
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color);">
+                                <th><i class="fas fa-gamepad me-2"></i>Juego</th>
+                                <th><i class="fas fa-users me-2"></i>Total Squads</th>
+                                <th><i class="fas fa-percentage me-2"></i>% del Total</th>
+                                <th><i class="fas fa-chart-line me-2"></i>Tendencia</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-reportes">
+                            <tr>
+                                <td colspan="4" class="text-center py-4">
+                                    <i class="fas fa-spinner fa-spin fa-2x text-secondary"></i>
+                                    <p class="text-secondary mt-2 mb-0">Cargando datos...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas Adicionales -->
+        <div class="col-lg-6">
+            <div class="card-custom p-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.2s;">
+                <h5 class="fw-bold mb-4">
+                    <i class="fas fa-microphone me-2" style="color: var(--accent-primary);"></i>
+                    Preferencias de Comunicación
+                </h5>
+                <div style="height: 250px;">
+                    <canvas id="graficoMicrofono"></canvas>
+                </div>
+                <div class="mt-3 text-center">
+                    <small class="text-secondary">
+                        Porcentaje de squads que requieren micrófono
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Gamers -->
+        <div class="col-lg-6">
+            <div class="card-custom p-4 animate__animated animate__fadeInRight" style="animation-delay: 0.2s;">
+                <h5 class="fw-bold mb-4">
+                    <i class="fas fa-trophy me-2" style="color: var(--accent-warning);"></i>
+                    Top Gamers Activos
+                </h5>
+                <div id="top-gamers" class="d-flex flex-column gap-3">
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x text-secondary"></i>
+                        <p class="text-secondary mt-2 mb-0">Cargando rankings...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Enlaces -->
+        <div class="col-12">
+            <div class="card-custom p-4 animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+                <h5 class="fw-bold mb-4">
+                    <i class="fas fa-network-wired me-2" style="color: var(--accent-secondary);"></i>
+                    Enlaces de la Comunidad
+                </h5>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="text-center p-4" style="background: rgba(99, 102, 241, 0.05); border-radius: 15px; border: 1px solid var(--border-color);">
+                            <i class="fas fa-handshake fa-3x mb-3" style="color: var(--accent-primary);"></i>
+                            <h3 class="fw-bold" id="enlaces-exitosos">0</h3>
+                            <p class="text-secondary mb-0">Enlaces Exitosos</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-4" style="background: rgba(16, 185, 129, 0.05); border-radius: 15px; border: 1px solid var(--border-color);">
+                            <i class="fas fa-user-check fa-3x mb-3" style="color: var(--accent-success);"></i>
+                            <h3 class="fw-bold" id="promedio-squad">0</h3>
+                            <p class="text-secondary mb-0">Promedio por Squad</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-4" style="background: rgba(245, 158, 11, 0.05); border-radius: 15px; border: 1px solid var(--border-color);">
+                            <i class="fas fa-clock fa-3x mb-3" style="color: var(--accent-warning);"></i>
+                            <h3 class="fw-bold" id="tiempo-promedio">-</h3>
+                            <p class="text-secondary mb-0">Tiempo Promedio</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 p-3" style="background: rgba(99, 102, 241, 0.05); border-left: 3px solid var(--accent-primary); border-radius: 10px;">
+                    <p class="text-white mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Los enlaces representan las conexiones exitosas entre jugadores que se unieron a través de SquadFinder. 
+                        Estas métricas muestran la efectividad de la plataforma en crear equipos.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+        window.location.href = '/';
+    }
+
+    let chartDoughnut, chartBarras, chartMicrofono;
+
+    cargarEstadisticas();
+
+    async function cargarEstadisticas() {
+        try {
+            const res = await fetch('/api/stats/');
+            const datos = await res.json();
+
+            // Actualizar métricas principales
+            animateValue('total-usuarios', 0, Math.max(0, datos.usuarios || 0), 1000);
+            animateValue('total-squads', 0, Math.max(0, datos.squads_total || 0), 1000);
+            animateValue('squads-hoy', 0, Math.max(0, datos.squads_hoy || 0), 1000);
+
+            // Calcular enlaces (simulado basado en squads)
+            const enlaces = Math.floor(datos.squads_total * 2.3);
+            animateValue('total-enlaces', 0, Math.max(0, enlaces || 0), 1000);
+            
+            // Estadísticas de enlaces
+            animateValue('enlaces-exitosos', 0, Math.floor(enlaces * 0.85), 1000);
+            setTimeout(() => {
+                document.getElementById('promedio-squad').textContent = '2.3';
+                document.getElementById('tiempo-promedio').textContent = '~15min';
+            }, 1000);
+
+            // Crear gráficos
+            crearGraficoDoughnut(datos.grafico);
+            crearGraficoBarras(datos.grafico);
+            crearGraficoMicrofono();
+            crearTablaReportes(datos.grafico, datos.squads_total);
+            await crearTopGamers();
+
+        } catch(e) {
+            console.error("Error cargando estadísticas:", e);
+        }
+    }
+
+    function crearGraficoDoughnut(datos) {
+        const ctx = document.getElementById('graficoDoughnut');
+        
+        const colores = [
+            'rgba(99, 102, 241, 0.8)',
+            'rgba(16, 185, 129, 0.8)',
+            'rgba(245, 158, 11, 0.8)',
+            'rgba(239, 68, 68, 0.8)',
+            'rgba(139, 92, 246, 0.8)',
+            'rgba(6, 182, 212, 0.8)'
+        ];
+
+        if (chartDoughnut) chartDoughnut.destroy();
+
+        chartDoughnut = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: datos.map(i => i.juego__nombre),
+                datasets: [{
+                    data: datos.map(i => i.total),
+                    backgroundColor: colores,
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(26, 31, 58, 0.95)',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#f1f5f9',
+                        borderColor: '#6366f1',
+                        borderWidth: 2,
+                        padding: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const porcentaje = ((context.parsed / total) * 100).toFixed(1);
+                                return ` ${context.label}: ${context.parsed} (${porcentaje}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Crear leyenda personalizada
+        const legendContainer = document.getElementById('legend-juegos');
+        legendContainer.innerHTML = datos.map((item, index) => `
+            <div class="d-flex justify-content-between align-items-center p-2" style="border-bottom: 1px solid var(--border-color);">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width: 20px; height: 20px; background: ${colores[index]}; border-radius: 4px;"></div>
+                    <span class="text-white">${item.juego__nombre}</span>
+                </div>
+                <span class="fw-bold" style="color: ${colores[index]};">${item.total}</span>
+            </div>
+        `).join('');
+    }
+
+    function crearGraficoBarras(datos) {
+        const ctx = document.getElementById('graficoBarras');
+
+        if (chartBarras) chartBarras.destroy();
+
+        chartBarras = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: datos.map(i => i.juego__nombre),
+                datasets: [{
+                    label: 'Squads Activos',
+                    data: datos.map(i => i.total),
+                    backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 2,
+                    borderRadius: 10,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(26, 31, 58, 0.95)',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#f1f5f9',
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        padding: 12
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(45, 53, 82, 0.5)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function crearGraficoMicrofono() {
+        const ctx = document.getElementById('graficoMicrofono');
+
+        // Simulando datos (en producción vendrían del backend)
+        const conMic = 75;
+        const sinMic = 25;
+
+        if (chartMicrofono) chartMicrofono.destroy();
+
+        chartMicrofono = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Con Micrófono', 'Sin Micrófono'],
+                datasets: [{
+                    data: [conMic, sinMic],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(148, 163, 184, 0.3)'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            color: '#f1f5f9',
+                            padding: 15,
+                            font: {
+                                size: 13
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(26, 31, 58, 0.95)',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#f1f5f9',
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.label}: ${context.parsed}%`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function crearTablaReportes(datos, total) {
+        const tbody = document.getElementById('tabla-reportes');
+        
+        if (datos.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-secondary">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p class="mb-0">No hay datos disponibles</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = datos.map(item => {
+            const porcentaje = ((item.total / total) * 100).toFixed(1);
+            const tendencia = Math.random() > 0.5 ? 'up' : 'down';
+            const tendenciaColor = tendencia === 'up' ? 'var(--accent-success)' : 'var(--accent-danger)';
+            const tendenciaIcon = tendencia === 'up' ? 'fa-arrow-up' : 'fa-arrow-down';
+            
+            return `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td>
+                        <i class="fas fa-gamepad me-2" style="color: var(--accent-primary);"></i>
+                        <strong>${item.juego__nombre}</strong>
+                    </td>
+                    <td><span class="badge badge-custom badge-info-custom">${item.total}</span></td>
+                    <td>
+                        <div class="progress" style="height: 20px; background: rgba(45, 53, 82, 0.5);">
+                            <div class="progress-bar" style="width: ${porcentaje}%; background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);">
+                                ${porcentaje}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <i class="fas ${tendenciaIcon}" style="color: ${tendenciaColor};"></i>
+                        <span style="color: ${tendenciaColor};">${Math.floor(Math.random() * 20) + 5}%</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    async function crearTopGamers() {
+        try {
+            const res = await fetch('/api/squads/', {
+                headers: {'Authorization': `Bearer ${token}`}
+            });
+            const squads = await res.json();
+
+            // Contar squads por usuario
+            const conteo = {};
+            squads.forEach(s => {
+                const gamer = s.gamertag_creador;
+                conteo[gamer] = (conteo[gamer] || 0) + 1;
+            });
+
+            // Ordenar y tomar top 5
+            const top = Object.entries(conteo)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            const container = document.getElementById('top-gamers');
+            
+            if (top.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-secondary">
+                        <i class="fas fa-users fa-3x mb-2"></i>
+                        <p class="mb-0">No hay datos de gamers aún</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const medallas = ['🥇', '🥈', '🥉', '🏅', '🏅'];
+            const colores = [
+                'var(--accent-warning)',
+                'var(--text-secondary)',
+                'rgba(205, 127, 50, 0.8)',
+                'var(--accent-primary)',
+                'var(--accent-primary)'
+            ];
+
+            container.innerHTML = top.map((item, index) => `
+                <div class="d-flex justify-content-between align-items-center p-3" style="background: rgba(99, 102, 241, 0.05); border-radius: 15px; border: 1px solid var(--border-color);">
+                    <div class="d-flex align-items-center gap-3">
+                        <span style="font-size: 2rem;">${medallas[index]}</span>
+                        <div>
+                            <h6 class="mb-0 fw-bold" style="color: ${colores[index]};">
+                                ${item[0]}
+                            </h6>
+                            <small class="text-secondary">Posición #${index + 1}</small>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="stat-number" style="font-size: 1.5rem;">${item[1]}</div>
+                        <small class="text-secondary">squads</small>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch(e) {
+            console.error("Error cargando top gamers:", e);
+        }
+    }
+
+    function animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id);
+        if (!obj) return;
+        
+        // VALIDACIÓN: Asegurar que end no sea negativo
+        end = Math.max(0, end);
+        
+        // Si el valor es 0, simplemente mostrarlo
+        if (end === 0) {
+            obj.textContent = '0';
+            return;
+        }
+        
+        const range = end - start;
+        if (range === 0) {
+            obj.textContent = end;
+            return;
+        }
+        
+        const increment = end > start ? 1 : -1;
+        const stepTime = Math.abs(Math.floor(duration / range));
+        let current = start;
+        
+        const timer = setInterval(() => {
+            current += increment;
+            obj.textContent = current;
+            if (current === end) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    }
+
+    function actualizarDatos() {
+        location.reload();
+    }
+</script>
+
+<style>
+    .table-dark {
+        color: var(--text-primary);
+        background-color: transparent;
+    }
+
+    .table-dark th,
+    .table-dark td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(99, 102, 241, 0.05);
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

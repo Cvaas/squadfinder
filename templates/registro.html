@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="row justify-content-center py-5">
+    <div class="col-12 col-md-10 col-lg-8">
+        <div class="card-custom p-5 animate__animated animate__fadeIn">
+            <div class="text-center mb-5">
+                <div class="mb-3">
+                    <i class="fas fa-user-plus" style="font-size: 3.5rem; color: var(--accent-success);"></i>
+                </div>
+                <h1 class="display-6 fw-bold mb-2">
+                    <span style="background: linear-gradient(135deg, var(--accent-success) 0%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">
+                        Crear Cuenta Nueva
+                    </span>
+                </h1>
+                <p class="text-secondary">Únete a la comunidad y encuentra tu squad perfecto</p>
+            </div>
+            
+            <form onsubmit="event.preventDefault(); registrar();">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label-custom">
+                            <i class="fas fa-user me-2"></i>Nombre de Usuario
+                        </label>
+                        <input 
+                            type="text" 
+                            id="reg-usuario" 
+                            class="form-control form-control-custom"
+                            placeholder="Ej: ProGamer2024"
+                            required
+                            minlength="3"
+                        >
+                        <small class="text-secondary d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>Mínimo 3 caracteres
+                        </small>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label-custom">
+                            <i class="fas fa-gamepad me-2"></i>Gamertag
+                        </label>
+                        <input 
+                            type="text" 
+                            id="reg-gamertag" 
+                            class="form-control form-control-custom" 
+                            placeholder="Ej: Player#1234"
+                            required
+                        >
+                        <small class="text-secondary d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>Tu identificador en el juego
+                        </small>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label-custom">
+                            <i class="fas fa-envelope me-2"></i>Correo Electrónico
+                        </label>
+                        <input 
+                            type="email" 
+                            id="reg-email" 
+                            class="form-control form-control-custom"
+                            placeholder="tu@email.com"
+                            required
+                        >
+                        <small class="text-secondary d-block mt-1">
+                            <i class="fas fa-shield-alt me-1"></i>No compartiremos tu email
+                        </small>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label-custom">
+                            <i class="fas fa-lock me-2"></i>Contraseña
+                        </label>
+                        <div class="position-relative">
+                            <input 
+                                type="password" 
+                                id="reg-clave" 
+                                class="form-control form-control-custom"
+                                placeholder="Mínimo 6 caracteres"
+                                required
+                                minlength="6"
+                            >
+                            <button 
+                                type="button" 
+                                class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-secondary"
+                                onclick="togglePassword()"
+                                style="z-index: 10;"
+                            >
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <div class="progress" style="height: 5px; background: rgba(45, 53, 82, 0.5);">
+                                <div id="passwordStrength" class="progress-bar" style="width: 0%; transition: all 0.3s;"></div>
+                            </div>
+                            <small id="passwordStrengthText" class="text-secondary d-block mt-1"></small>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check" style="padding-left: 2rem;">
+                            <input class="form-check-input" type="checkbox" id="terminos" required 
+                                   style="width: 20px; height: 20px; margin-top: 0.15rem;">
+                            <label class="form-check-label text-secondary" for="terminos">
+                                Acepto los términos y condiciones de uso
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-custom-success w-100 py-3 mt-4 mb-3">
+                    <i class="fas fa-rocket me-2"></i>CREAR MI CUENTA
+                </button>
+            </form>
+            
+            <div id="mensaje" class="alert d-none mb-3" role="alert">
+                <i class="fas fa-circle-notch fa-spin me-2"></i>
+                <span id="mensajeText"></span>
+            </div>
+            
+            <div class="position-relative my-4">
+                <hr style="border-color: var(--border-color);">
+                <span class="position-absolute top-50 start-50 translate-middle px-3" 
+                      style="background: rgba(26, 31, 58, 0.8); color: var(--text-secondary);">
+                    ¿Ya tienes cuenta?
+                </span>
+            </div>
+            
+            <div class="text-center">
+                <a href="/" class="btn btn-outline-custom w-100 py-3">
+                    <i class="fas fa-sign-in-alt me-2"></i>INICIAR SESIÓN
+                </a>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="row g-4 mt-4">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-users fa-3x" style="color: var(--accent-primary);"></i>
+                    </div>
+                    <h5 class="text-white mb-2">Encuentra Equipos</h5>
+                    <p class="text-secondary small">Conecta con jugadores de tu nivel y preferencias</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-comments fa-3x" style="color: var(--accent-success);"></i>
+                    </div>
+                    <h5 class="text-white mb-2">Comunicación Real</h5>
+                    <p class="text-secondary small">Chat y voz integrados para coordinación perfecta</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-trophy fa-3x" style="color: var(--accent-warning);"></i>
+                    </div>
+                    <h5 class="text-white mb-2">Mejora tu Juego</h5>
+                    <p class="text-secondary small">Aprende y crece con jugadores experimentados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('reg-clave');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+
+    // Password strength indicator
+    document.getElementById('reg-clave').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const strengthBar = document.getElementById('passwordStrength');
+        const strengthText = document.getElementById('passwordStrengthText');
+        
+        let strength = 0;
+        let text = '';
+        let color = '';
+        
+        if (password.length >= 6) strength += 25;
+        if (password.length >= 10) strength += 25;
+        if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+        if (/\d/.test(password)) strength += 25;
+        
+        if (strength <= 25) {
+            text = 'Débil';
+            color = 'var(--accent-danger)';
+        } else if (strength <= 50) {
+            text = 'Media';
+            color = 'var(--accent-warning)';
+        } else if (strength <= 75) {
+            text = 'Buena';
+            color = '#3b82f6';
+        } else {
+            text = 'Excelente';
+            color = 'var(--accent-success)';
+        }
+        
+        strengthBar.style.width = strength + '%';
+        strengthBar.style.backgroundColor = color;
+        strengthText.textContent = password.length > 0 ? `Seguridad: ${text}` : '';
+        strengthText.style.color = color;
+    });
+
+    async function registrar() {
+        const payload = {
+            username: document.getElementById('reg-usuario').value.trim(),
+            email: document.getElementById('reg-email').value.trim(),
+            password: document.getElementById('reg-clave').value,
+            gamertag: document.getElementById('reg-gamertag').value.trim()
+        };
+        
+        const mensajeDiv = document.getElementById('mensaje');
+        const mensajeText = document.getElementById('mensajeText');
+        const btn = document.querySelector('button[type="submit"]');
+
+        // Validación
+        if (payload.password.length < 6) {
+            mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'danger');
+            return;
+        }
+
+        if (!document.getElementById('terminos').checked) {
+            mostrarMensaje('Debes aceptar los términos y condiciones', 'danger');
+            return;
+        }
+
+        // Mostrar loading
+        const btnText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando cuenta...';
+
+        try {
+            const res = await fetch('/api/auth/registro/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                btn.innerHTML = '<i class="fas fa-check me-2"></i>¡Cuenta creada!';
+                btn.classList.remove('btn-custom-success');
+                btn.style.background = 'linear-gradient(135deg, var(--accent-success) 0%, #059669 100%)';
+                
+                mostrarMensaje('¡Cuenta creada exitosamente! Redirigiendo al login...', 'success');
+                
+                setTimeout(() => window.location.href = '/', 2000);
+            } else {
+                const error = await res.json();
+                const errorMsg = error.username ? 'El nombre de usuario ya existe' :
+                               error.gamertag ? 'El gamertag ya está en uso' :
+                               error.email ? 'El email ya está registrado' :
+                               'Error al crear la cuenta. Verifica los datos.';
+                
+                mostrarMensaje(errorMsg, 'danger');
+                btn.disabled = false;
+                btn.innerHTML = btnText;
+            }
+        } catch (e) {
+            console.error('Error:', e);
+            mostrarMensaje('Error de conexión. Por favor intenta de nuevo.', 'danger');
+            btn.disabled = false;
+            btn.innerHTML = btnText;
+        }
+    }
+
+    function mostrarMensaje(texto, tipo) {
+        const mensajeDiv = document.getElementById('mensaje');
+        const mensajeText = document.getElementById('mensajeText');
+        
+        mensajeDiv.classList.remove('d-none', 'alert-success', 'alert-danger');
+        mensajeDiv.classList.add(`alert-${tipo}`, 'animate__animated', 'animate__fadeIn');
+        
+        const icon = tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        mensajeDiv.innerHTML = `<i class="fas ${icon} me-2"></i><span>${texto}</span>`;
+    }
+</script>
+
+<style>
+    .alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid var(--accent-success);
+        color: var(--accent-success);
+        border-radius: 15px;
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid var(--accent-danger);
+        color: var(--accent-danger);
+        border-radius: 15px;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--accent-primary);
+        border-color: var(--accent-primary);
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+</style>
+{% endblock %}
