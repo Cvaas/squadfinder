@@ -12,4 +12,5 @@ urlpatterns = [
     path("squads/", v.VistaSquads.as_view()),
     path("squads/<int:pk>/", v.VistaDetalleSquad.as_view()),
     path("stats/", v.VistaEstadisticas.as_view()),
+    path("top-gamers/", v.VistaTopGamers.as_view()),  # ← NUEVA RUTA
 ]

@@ -460,67 +460,65 @@
     }
 
     async function crearTopGamers() {
-        try {
-            const res = await fetch('/api/squads/', {
-                headers: {'Authorization': `Bearer ${token}`}
-            });
-            const squads = await res.json();
+    try {
+        // Ahora usa el endpoint específico (sin necesidad de token)
+        const res = await fetch('/api/top-gamers/');
+        
+        if (!res.ok) {
+            throw new Error('Error al cargar top gamers');
+        }
+        
+        const topGamers = await res.json();
+        const container = document.getElementById('top-gamers');
+        
+        if (topGamers.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-4 text-secondary">
+                    <i class="fas fa-users fa-3x mb-2"></i>
+                    <p class="mb-0">No hay datos de gamers aún</p>
+                </div>
+            `;
+            return;
+        }
 
-            // Contar squads por usuario
-            const conteo = {};
-            squads.forEach(s => {
-                const gamer = s.gamertag_creador;
-                conteo[gamer] = (conteo[gamer] || 0) + 1;
-            });
+        const medallas = ['🥇', '🥈', '🥉', '🏅', '🏅'];
+        const colores = [
+            'var(--accent-warning)',
+            'var(--text-secondary)',
+            'rgba(205, 127, 50, 0.8)',
+            'var(--accent-primary)',
+            'var(--accent-primary)'
+        ];
 
-            // Ordenar y tomar top 5
-            const top = Object.entries(conteo)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5);
-
-            const container = document.getElementById('top-gamers');
-            
-            if (top.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-4 text-secondary">
-                        <i class="fas fa-users fa-3x mb-2"></i>
-                        <p class="mb-0">No hay datos de gamers aún</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const medallas = ['🥇', '🥈', '🥉', '🏅', '🏅'];
-            const colores = [
-                'var(--accent-warning)',
-                'var(--text-secondary)',
-                'rgba(205, 127, 50, 0.8)',
-                'var(--accent-primary)',
-                'var(--accent-primary)'
-            ];
-
-            container.innerHTML = top.map((item, index) => `
-                <div class="d-flex justify-content-between align-items-center p-3" style="background: rgba(99, 102, 241, 0.05); border-radius: 15px; border: 1px solid var(--border-color);">
-                    <div class="d-flex align-items-center gap-3">
-                        <span style="font-size: 2rem;">${medallas[index]}</span>
-                        <div>
-                            <h6 class="mb-0 fw-bold" style="color: ${colores[index]};">
-                                ${item[0]}
-                            </h6>
-                            <small class="text-secondary">Posición #${index + 1}</small>
-                        </div>
-                    </div>
-                    <div class="text-end">
-                        <div class="stat-number" style="font-size: 1.5rem;">${item[1]}</div>
-                        <small class="text-secondary">squads</small>
+        container.innerHTML = topGamers.map((gamer, index) => `
+            <div class="d-flex justify-content-between align-items-center p-3" style="background: rgba(99, 102, 241, 0.05); border-radius: 15px; border: 1px solid var(--border-color);">
+                <div class="d-flex align-items-center gap-3">
+                    <span style="font-size: 2rem;">${medallas[index]}</span>
+                    <div>
+                        <h6 class="mb-0 fw-bold" style="color: ${colores[index]};">
+                            ${gamer.gamertag}
+                        </h6>
+                        <small class="text-secondary">Posición #${index + 1}</small>
                     </div>
                 </div>
-            `).join('');
+                <div class="text-end">
+                    <div class="stat-number" style="font-size: 1.5rem;">${gamer.total_squads}</div>
+                    <small class="text-secondary">squads</small>
+                </div>
+            </div>
+        `).join('');
 
-        } catch(e) {
-            console.error("Error cargando top gamers:", e);
-        }
+    } catch(e) {
+        console.error("Error cargando top gamers:", e);
+        const container = document.getElementById('top-gamers');
+        container.innerHTML = `
+            <div class="text-center py-4 text-danger">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p class="mb-0">Error al cargar rankings</p>
+            </div>
+        `;
     }
+}
 
     function animateValue(id, start, end, duration) {
         const obj = document.getElementById(id);

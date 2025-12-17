@@ -104,3 +104,29 @@ class VistaEstadisticas(APIView):
             "grafico": list(squads_por_juego)
         }
         return Response(data)
+
+# 6. TOP GAMERS (Ranking de usuarios más activos)
+class VistaTopGamers(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = [] 
+
+    def get(self, request):
+        # Contar squads por usuario y ordenar
+        from django.db.models import Count
+        
+        top_gamers = CustomUser.objects.annotate(
+            total_squads=Count('squadrequest')
+        ).filter(
+            total_squads__gt=0  # Solo usuarios con al menos 1 squad
+        ).order_by('-total_squads')[:5]  # Top 5
+        
+        # Crear respuesta
+        data = [
+            {
+                'gamertag': user.gamertag,
+                'total_squads': user.total_squads
+            }
+            for user in top_gamers
+        ]
+        
+        return Response(data)
