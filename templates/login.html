@@ -9,43 +9,44 @@
                     <i class="fas fa-gamepad" style="font-size: 4rem; color: var(--accent-primary);"></i>
                 </div>
                 <h1 class="display-5 fw-bold mb-2">
-                    <span style="background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; color: transparent;">
+                    <span style="background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); 
+                                 -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
                         Bienvenido a SquadFinder
                     </span>
                 </h1>
                 <p class="text-secondary mb-0">Encuentra tu squad perfecto para jugar</p>
             </div>
-            
+
             <form onsubmit="event.preventDefault(); iniciarSesion();">
                 <div class="mb-4">
                     <label class="form-label-custom">
                         <i class="fas fa-user me-2"></i>Usuario
                     </label>
-                    <input 
-                        type="text" 
-                        id="usuario" 
-                        class="form-control form-control-custom" 
+                    <input
+                        type="text"
+                        id="usuario"
+                        class="form-control form-control-custom"
                         placeholder="Tu nombre de usuario"
                         required
                         autocomplete="username"
                     >
                 </div>
-                
+
                 <div class="mb-4">
                     <label class="form-label-custom">
                         <i class="fas fa-lock me-2"></i>Contraseña
                     </label>
                     <div class="position-relative">
-                        <input 
-                            type="password" 
-                            id="clave" 
-                            class="form-control form-control-custom" 
+                        <input
+                            type="password"
+                            id="clave"
+                            class="form-control form-control-custom"
                             placeholder="Tu contraseña"
                             required
                             autocomplete="current-password"
                         >
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             class="btn btn-link position-absolute end-0 top-50 translate-middle-y text-secondary"
                             onclick="togglePassword()"
                             style="z-index: 10;"
@@ -59,149 +60,96 @@
                     <i class="fas fa-sign-in-alt me-2"></i>INICIAR SESIÓN
                 </button>
             </form>
-            
+
             <div id="error" class="alert alert-danger d-none mb-3" role="alert">
                 <i class="fas fa-exclamation-circle me-2"></i>
                 <span id="errorText"></span>
             </div>
-            
+
             <div class="position-relative my-4">
                 <hr style="border-color: var(--border-color);">
-                <span class="position-absolute top-50 start-50 translate-middle px-3" 
+                <span class="position-absolute top-50 start-50 translate-middle px-3"
                       style="background: rgba(26, 31, 58, 0.8); color: var(--text-secondary);">
                     ¿Nuevo en SquadFinder?
                 </span>
             </div>
-            
+
             <div class="text-center">
                 <p class="text-secondary mb-3">Únete a nuestra comunidad de gamers</p>
                 <a href="/registro/" class="btn btn-custom-success w-100 py-3">
                     <i class="fas fa-user-plus me-2"></i>CREAR CUENTA GRATIS
                 </a>
             </div>
-
-            <div class="text-center mt-4">
-                <div class="d-flex justify-content-center gap-4 text-secondary">
-                    <div>
-                        <i class="fas fa-users fa-2x mb-2 d-block" style="color: var(--accent-primary);"></i>
-                        <small>Comunidad Activa</small>
-                    </div>
-                    <div>
-                        <i class="fas fa-shield-alt fa-2x mb-2 d-block" style="color: var(--accent-success);"></i>
-                        <small>100% Seguro</small>
-                    </div>
-                    <div>
-                        <i class="fas fa-bolt fa-2x mb-2 d-block" style="color: var(--accent-warning);"></i>
-                        <small>Conexión Rápida</small>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
 <script>
-    function togglePassword() {
-        const passwordInput = document.getElementById('clave');
-        const toggleIcon = document.getElementById('toggleIcon');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleIcon.classList.remove('fa-eye');
-            toggleIcon.classList.add('fa-eye-slash');
+function togglePassword() {
+    const input = document.getElementById('clave');
+    const icon = document.getElementById('toggleIcon');
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+async function iniciarSesion() {
+    const usuario = document.getElementById('usuario').value.trim();
+    const clave = document.getElementById('clave').value;
+    const errorDiv = document.getElementById('error');
+    const errorText = document.getElementById('errorText');
+
+    errorDiv.classList.add('d-none');
+
+    if (!usuario || !clave) {
+        mostrarError('Por favor completa todos los campos');
+        return;
+    }
+
+    const btn = document.querySelector('button[type="submit"]');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Iniciando sesión...';
+
+    try {
+        const res = await fetch('/api/auth/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: usuario, password: clave })
+        });
+
+        const datos = await res.json();
+
+        if (res.ok) {
+            // 🔑 CLAVE: datos consistentes para la navbar
+            localStorage.setItem('access_token', datos.access);
+            localStorage.setItem(
+                'usuario_actual',
+                datos.user?.gamertag || datos.user?.username || usuario
+            );
+
+            window.location.href = '/dashboard/';
         } else {
-            passwordInput.type = 'password';
-            toggleIcon.classList.remove('fa-eye-slash');
-            toggleIcon.classList.add('fa-eye');
-        }
-    }
-
-    async function iniciarSesion() {
-        const usuario = document.getElementById('usuario').value.trim();
-        const clave = document.getElementById('clave').value;
-        const errorDiv = document.getElementById('error');
-        const errorText = document.getElementById('errorText');
-
-        // Ocultar error previo
-        errorDiv.classList.add('d-none');
-
-        // Validación básica
-        if (!usuario || !clave) {
-            mostrarError('Por favor completa todos los campos');
-            return;
-        }
-
-        // Mostrar loading en el botón
-        const btn = document.querySelector('button[type="submit"]');
-        const btnText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Iniciando sesión...';
-
-        try {
-            const res = await fetch('/api/auth/login/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: usuario, password: clave })
-            });
-
-            const datos = await res.json();
-
-            if (res.ok) {
-                localStorage.setItem('access_token', datos.access);
-                localStorage.setItem('usuario_actual', usuario);
-                
-                // Mostrar éxito
-                btn.innerHTML = '<i class="fas fa-check me-2"></i>¡Bienvenido!';
-                btn.classList.remove('btn-custom-primary');
-                btn.classList.add('btn-custom-success');
-                
-                // Redirigir después de un momento
-                setTimeout(() => {
-                    window.location.href = '/dashboard/';
-                }, 500);
-            } else {
-                mostrarError('Usuario o contraseña incorrectos');
-                btn.disabled = false;
-                btn.innerHTML = btnText;
-            }
-        } catch (e) {
-            console.error('Error:', e);
-            mostrarError('Error de conexión. Por favor intenta de nuevo.');
+            mostrarError('Usuario o contraseña incorrectos');
             btn.disabled = false;
-            btn.innerHTML = btnText;
+            btn.innerHTML = original;
         }
+    } catch (e) {
+        mostrarError('Error de conexión. Intenta nuevamente.');
+        btn.disabled = false;
+        btn.innerHTML = original;
     }
+}
 
-    function mostrarError(mensaje) {
-        const errorDiv = document.getElementById('error');
-        const errorText = document.getElementById('errorText');
-        errorText.textContent = mensaje;
-        errorDiv.classList.remove('d-none');
-        errorDiv.classList.add('animate__animated', 'animate__shakeX');
-        
-        setTimeout(() => {
-            errorDiv.classList.remove('animate__shakeX');
-        }, 1000);
-    }
-
-    // Permitir enter para enviar el formulario
-    document.getElementById('clave').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            iniciarSesion();
-        }
-    });
+function mostrarError(msg) {
+    const div = document.getElementById('error');
+    document.getElementById('errorText').textContent = msg;
+    div.classList.remove('d-none');
+}
 </script>
-
-<style>
-    .alert {
-        border-radius: 15px;
-        border: none;
-    }
-
-    .alert-danger {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid var(--accent-danger);
-        color: var(--accent-danger);
-    }
-</style>
 {% endblock %}

@@ -1,0 +1,25 @@
+# === Entornos virtuales ===
+venv/
+env/
+.venv/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+
+# === Django ===
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+
+# === Variables de entorno ===
+.env
+
+# === IDEs ===
+.vscode/
+.idea/
+
+# === Sistema ===
+.DS_Store
+Thumbs.db
